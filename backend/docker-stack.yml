@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    deploy:
+      replicas: 2
+    depends_on:
+      - mongodb
+
+  catalog-service:
+    build: ./catalog-service
+    ports:
+      - "3002:3002"
+    deploy:
+      replicas: 2
+    depends_on:
+      - postgres
+
+  order-service:
+    build: ./order-service
+    ports:
+      - "3003:3003"
+    deploy:
+      replicas: 2
+    depends_on:
+      - mongodb
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    deploy:
+      replicas: 1
+    depends_on:
+      - api-gateway
+
+  api-gateway:
+    build: ./nginx
+    ports:
+      - "80:80"
+    deploy:
+      replicas: 1
+    depends_on:
+      - auth-service
+      - catalog-service
+      - order-service
+
+  mongodb:
+    image: mongo
+    deploy:
+      replicas: 1
+    ports:
+      - "27017:27017"
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 0000
+      POSTGRES_DB: productdb
+    deploy:
+      replicas: 1
+    ports:
+      - "5432:5432"
